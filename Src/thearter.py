@@ -39,7 +39,7 @@ def accept_wrapper(key,sel,audience,seats):
         data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"",state="waiting_for_quem")
         events = selectors.EVENT_READ | selectors.EVENT_WRITE
         sel.register(conn, events, data=data)
-        conn.send(b"Teatro aberto ... bem vindo\n")
+        conn.send(b"Teatro aberto \nBem vindo\nPara pedir ajudar digite '-ajuda'\n")
         conn.send(b"Toc Toc\n")
         audience += 1
         print(f"The number of the audience is {audience}")
@@ -59,27 +59,34 @@ def service_connection(key, mask, sel,audience):
                 if data.state == "waiting_for_quem":
                     print(f"Received: {msg}, Sending: hulk, from: {addr}")
                     data.state = "waiting_for_hulk"
-                    data.outb += b"hulk\n"  
+                    data.outb += (b"hulk\n"  )
                 else:
                     print(f"Received: {msg}, Sending: Unknown command, from: {addr}")
                     data.state = "waiting_for_quem"
-                    data.outb += b"Unknown command\n" 
+                    data.outb += (b"Unknown command\n" )
             elif msg == "hulk quem?":
                 if  data.state == "waiting_for_hulk":
                     print(f"Received: {msg}, Sending: SMASH, from: {addr}")
                     data.state = "finish"
-                    data.outb += b"SMASH\n"
-                    data.outb+= b"Bye bye\n"
+                    data.outb += (b"SMASH\n")
+                    data.outb+= (b"Bye bye\n")
             elif data.state == "finish":
                 print(f"Closing connection to {data.addr}")
                 audience = audience - 1
                 print(f"The number of the audience is {audience}")
                 sel.unregister(sock)
                 sock.close()
+            elif msg == "-ajuda":
+                data.outb += (b"Uma breve explicacao de como funcionara\n")
+                data.outb += (b"Assim que enviarmos o 'toc toc' voce ira responder com 'quem eh?'\n")
+                data.outb += (b"Em seguida enviaremos a resposta ... por exemplo 'joao'\n")
+                data.outb += (b"E voce eviara 'joao quem?' e te contaremos a piada\n")
+                data.outb += (b"Toc Toc\n") 
             else:
                 print(f"Received: {msg}, Sending: Unknown command, from: {addr}")
                 data.state = "waiting_for_quem"
-                data.outb += b"Unknown command\n" 
+                data.outb += (b"Unknown command\n")
+                data.outb += (b"Toc Toc\n") 
         else:
             print(f"Closing connection to {data.addr}")
             audience = audience - 1
