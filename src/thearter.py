@@ -1,4 +1,3 @@
-import sys
 import socket
 import selectors
 import types
@@ -56,38 +55,7 @@ def service_connection(key, mask, sel,audience):
         if recv_data:
             try:
                 msg = recv_data.decode('utf-8').strip().lower()
-                if  msg == "quem eh?":
-                    if data.state == "waiting_for_quem":
-                        print(f"Received: {msg}, Sending: hulk, from: {addr}")
-                        data.state = "waiting_for_hulk"
-                        data.outb += (b"hulk\n"  )
-                    else:
-                        print(f"Received: {msg}, Sending: Unknown command, from: {addr}")
-                        data.state = "waiting_for_quem"
-                        data.outb += (b"Comando desconhecido\n" )
-                elif msg == "hulk quem?":
-                    if  data.state == "waiting_for_hulk":
-                        print(f"Received: {msg}, Sending: SMASH, from: {addr}")
-                        data.state = "finish"
-                        data.outb += (b"SMASH\n")
-                        data.outb+= (b"Bye bye\n")
-                elif data.state == "finish":
-                    print(f"Closing connection to {data.addr}")
-                    audience = audience - 1
-                    print(f"The number of the audience is {audience}")
-                    sel.unregister(sock)
-                    sock.close()
-                elif msg == "-ajuda":
-                    data.outb += (b"Uma breve explicacao de como funcionara\n")
-                    data.outb += (b"Assim que enviarmos o 'toc toc' voce ira responder com 'quem eh?'\n")
-                    data.outb += (b"Em seguida enviaremos a resposta ... por exemplo 'joao'\n")
-                    data.outb += (b"E voce eviara 'joao quem?' e te contaremos a piada\n")
-                    data.outb += (b"Toc Toc\n")
-                else:
-                    print(f"Received: {msg}, Sending: Unknown command, from: {addr}")
-                    data.state = "waiting_for_quem"
-                    data.outb += (b"Comando desconhecido\n")
-                    data.outb += (b"Toc Toc\n") 
+                audience = KnocKnocProtocol(msg,addr,data,sock,sel,audience)
             except UnicodeDecodeError:
                 print(f"Exception error 'Unicode decode' from {addr}")
                 audience = audience - 1
@@ -107,6 +75,43 @@ def service_connection(key, mask, sel,audience):
             data.outb = data.outb[sent:]
 
     return audience
+
+def KnocKnocProtocol(msg,addr,data,sock,sel,audience):
+    if  msg == "quem eh?":
+        if data.state == "waiting_for_quem":
+            print(f"Received: {msg}, Sending: hulk, from: {addr}")
+            data.state = "waiting_for_hulk"
+            data.outb += (b"hulk\n"  )
+        else:
+            print(f"Received: {msg}, Sending: Unknown command, from: {addr}")
+            data.state = "waiting_for_quem"
+            data.outb += (b"Comando desconhecido\n" )
+    elif msg == "hulk quem?":
+        if  data.state == "waiting_for_hulk":
+            print(f"Received: {msg}, Sending: SMASH, from: {addr}")
+            data.state = "finish"
+            data.outb += (b"SMASH\n")
+            data.outb+= (b"Bye bye\n")
+    elif data.state == "finish":
+        print(f"Closing connection to {data.addr}")
+        audience = audience - 1
+        print(f"The number of the audience is {audience}")
+        sel.unregister(sock)
+        sock.close()
+    elif msg == "-ajuda":
+        data.outb += (b"Uma breve explicacao de como funcionara\n")
+        data.outb += (b"Assim que enviarmos o 'toc toc' voce ira responder com 'quem eh?'\n")
+        data.outb += (b"Em seguida enviaremos a resposta ... por exemplo 'joao'\n")
+        data.outb += (b"E voce eviara 'joao quem?' e te contaremos a piada\n")
+        data.outb += (b"Toc Toc\n")
+        data.state = "waiting_for_quem"
+    else:
+        print(f"Received: {msg}, Sending: Unknown command, from: {addr}")
+        data.state = "waiting_for_quem"
+        data.outb += (b"Comando desconhecido\n")
+        data.outb += (b"Toc Toc\n") 
+    return audience
+
 
 if __name__ == "__main__":
     try:
