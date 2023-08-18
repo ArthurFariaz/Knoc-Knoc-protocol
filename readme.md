@@ -3,3 +3,7 @@
 ## references: 
 * [socket docs](https://docs.python.org/3/library/socket.html)
 * [forum about python](https://realpython.com/python-sockets/)
+### TODO:
+- [x] Bug fix client -- the client can blow up the server with some inputs.
+- [x] Knoc knoc protocol -- the mensagens the server receive, must gain a function.
+- [ ] Create a queue for the clients.
