@@ -30,9 +30,9 @@ def main():
         sel.close()
 
 def accept_wrapper(key,sel,audience,seats):
-    while(audience < seats):
-        sock = key.fileobj
-        conn, addr = sock.accept() 
+    sock = key.fileobj
+    conn, addr = sock.accept() 
+    if(audience < seats):
         print(f"Accepted connection from {addr}")
         #lsock.setblocking(False)
         data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"",state="waiting_for_quem")
@@ -42,8 +42,8 @@ def accept_wrapper(key,sel,audience,seats):
         conn.send(b"Toc Toc\n")
         audience += 1
         print(f"The number of the audience is {audience}")
-        return audience
-    time.sleep(0.01)
+    else:
+        conn.send(b"Teatro lotado\n")
     return audience
 
 def service_connection(key, mask, sel,audience):
@@ -111,7 +111,6 @@ def KnocKnocProtocol(msg,addr,data,sock,sel,audience):
         data.outb += (b"Comando desconhecido\n")
         data.outb += (b"Toc Toc\n") 
     return audience
-
 
 if __name__ == "__main__":
     try:
